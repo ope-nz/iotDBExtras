@@ -1,11 +1,11 @@
-#README
+# README
 
-##UDTFDistinctCount
+## UDTFDistinctCount
 Returns distinct values (in column 2) and count (in column 1). Column 1 is "time" column therefore it is a long of count eg 65 means there are 65 occurences)
 
 create function distinct_count as 'nz.ope.iotdb.extras.UDTFDistinctCount'
 
-example queries (using sample data)
+## Example queries (using sample data)
 
 select distinct_count(hardware) from root.ln.wf02.wt02;
 
