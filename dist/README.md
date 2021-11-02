@@ -1,7 +1,7 @@
 # iotDBExtra UDF
 
 ## Name: UDTFDistinctCount
-Returns distinct values (in column 2) and count (in column 1). Column 1 is "time" column therefore it is a long of count eg 65 means there are 65 occurences)
+Returns distinct values (in column 2) with occurence count (in column 1). Column 1 is the "time" column therefore it is a long of count eg 65 means there are 65 occurences)
 
 ### Input Series
 Only supports a single input series. All data types supported.
