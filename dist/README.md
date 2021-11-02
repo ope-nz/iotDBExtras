@@ -14,7 +14,9 @@ create function distinct_count as 'nz.ope.iotdb.extras.UDTFDistinctCount'
 
 ### Usage
 select distinct_count(temperature) from root.ln.wf01.wt01;
+
 select distinct_count(temperature,'sort'='desc') from root.ln.wf01.wt01;
+
 select distinct_count(temperature,'sort'='asc') from root.ln.wf01.wt01 limit 10;
 
 ### Example queries (using sample data)
