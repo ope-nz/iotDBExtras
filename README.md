@@ -1,2 +1,2 @@
 # iotDBExtras
-A UDF library with a few utility functions
+An iotDB UDF library with a few utility functions to assist with reporting.
