@@ -2,7 +2,12 @@ package nz.ope.iotdb.extras;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.io.IOException;
 
 import org.apache.iotdb.db.query.udf.api.UDTF;
@@ -22,102 +27,115 @@ public class UDTFDistinctCount implements UDTF {
   private Map<Object, Long> output = new HashMap<Object, Long>();
 
   int outputDataType;
+  String sort = null;
 
-  /*
-  switch (type) {
-    case 0:
-      return ;
-    case 1:
-      return ;
-    case 2:
-      return ;
-    case 3:
-      return ;
-    case 4:
-      return ;
-    case 5:
-      return ;
-  } 
-  */
+  public void beforeStart(UDFParameters parameters, UDTFConfigurations configurations)
+  {
+    this.sort = parameters.getString("sort");
 
-  public void beforeStart(UDFParameters paramUDFParameters, UDTFConfigurations paramUDTFConfigurations) {
-        try{
-          paramUDTFConfigurations.setAccessStrategy(new RowByRowAccessStrategy())
-        .setOutputDataType(paramUDFParameters.getDataType(0));
-
-          outputDataType = paramUDFParameters.getDataType(0).ordinal();
-      } catch (Exception e) {
-        System.out.println(e.toString());
-      }
-
-      System.out.println(outputDataType);
-        
+    try
+    {
+      configurations.setAccessStrategy(new RowByRowAccessStrategy()).setOutputDataType(parameters.getDataType(0));
+      outputDataType = parameters.getDataType(0).ordinal();
+    }
+    catch (Exception e)
+    {
+      System.out.println(e.toString());
+    }        
   }
 
   public void transform(Row paramRow, PointCollector paramPointCollector) {
     if (!paramRow.isNull(0))
     {
-      Object key = null;
-
-      switch (outputDataType) //paramRow.getDataType(0).ordinal())
-      {
-        case 0: //BOOLEAN
-          key = paramRow.getBoolean(0);
-          break;
-        case 1: //INT32
-          key = paramRow.getInt(0);
-          break;
-        case 2: //INT64
-          key = paramRow.getLong(0);
-          break;
-        case 3: //FLOAT
-          key = paramRow.getFloat(0);
-          break;
-        case 4: //DOUBLE
-          key = paramRow.getDouble(0);
-          break;
-        case 5: //TEXT
-          key = paramRow.getString(0);
-          break;        
-      }
+      Object key = getObject(paramRow);      
 
       if (key == null) return;
 
-      if (!this.output.containsKey(key)) {
+      if (!this.output.containsKey(key))
+      {
         this.output.put(key, 1L);
-      } else {
+      }
+      else
+      {
         Long count = 1 + this.output.get(key);
         this.output.put(key, count);
       }
     }
   }
 
-  public void terminate(PointCollector collector) throws IOException, UDFException, QueryProcessException {
-    for (Map.Entry<Object, Long> entry : this.output.entrySet()) {
-      Object key = entry.getKey();
-      Long count = entry.getValue();
-
-      switch (outputDataType)
-      {
-        case 0:
-          collector.putBoolean(count, (Boolean)key);
-          break;
-        case 1:
-          collector.putInt(count, (int)key);
-          break;
-        case 2:
-          collector.putLong(count, (long)key);
-          break;
-        case 3:
-          collector.putFloat(count, (float)key);
-          break;
-        case 4:
-          collector.putDouble(count, (double)key);
-          break;
-        case 5:
-          collector.putString(count, (String) key);
-          break;        
-      }
+  private Object getObject(Row paramRow) {
+    switch (outputDataType) {
+    case 0: // BOOLEAN
+      return paramRow.getBoolean(0);
+    case 1: // INT32
+      return paramRow.getInt(0);
+    case 2: // INT64
+      return paramRow.getLong(0);
+    case 3: // FLOAT
+      return paramRow.getFloat(0);
+    case 4: // DOUBLE
+      return paramRow.getDouble(0);
+    case 5: // TEXT
+      return paramRow.getString(0);
     }
+
+    return null;
+  }
+
+  public void terminate(PointCollector collector) throws IOException, UDFException, QueryProcessException
+  {
+    Map<Object, Long> sorted = SortMap(this.output);   
+
+    for (Map.Entry<Object, Long> entry : sorted.entrySet())
+    {      
+        Object key = entry.getKey();
+        Long count = entry.getValue();
+        collector = putObject(collector,key,count);        
+      }   
+  }
+
+  private PointCollector putObject(PointCollector collector, Object key, Long count) {
+    try {
+      switch (outputDataType) {
+      case 0:
+        collector.putBoolean(count, (Boolean) key);
+        break;
+      case 1:
+        collector.putInt(count, (int) key);
+        break;
+      case 2:
+        collector.putLong(count, (long) key);
+        break;
+      case 3:
+        collector.putFloat(count, (float) key);
+        break;
+      case 4:
+        collector.putDouble(count, (double) key);
+        break;
+      case 5:
+        collector.putString(count, (String) key);
+        break;
+      }
+    } catch (Exception e)
+    {
+      System.out.println(e.toString());
+    }
+
+    return collector;
+  }
+
+  private Map<Object, Long> SortMap(Map<Object, Long> map)
+  { 
+    if (sort.equalsIgnoreCase("asc"))
+    {
+      return map.entrySet().stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+    }
+
+    if (sort.equalsIgnoreCase("desc"))
+    {
+      return map.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+    }
+    
+    return map;
   }
 }
