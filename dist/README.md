@@ -3,21 +3,21 @@
 ## Name: UDTFDistinctCount
 Returns distinct values (in column 2) and count (in column 1). Column 1 is "time" column therefore it is a long of count eg 65 means there are 65 occurences)
 
-# Input Series
+### Input Series
 Only supports a single input series. All data types supported.
 
-# Parameters
+### Parameters
 sort: 'asc' or 'desc' (this will sort the results by the count ie time column)
 
-## Register UDF
+### Register UDF
 create function distinct_count as 'nz.ope.iotdb.extras.UDTFDistinctCount'
 
-## Usage
+### Usage
 select distinct_count(temperature) from root.ln.wf01.wt01;
 select distinct_count(temperature,'sort'='desc') from root.ln.wf01.wt01;
 select distinct_count(temperature,'sort'='asc') from root.ln.wf01.wt01 limit 10;
 
-## Example queries (using sample data)
+### Example queries (using sample data)
 
 select distinct_count(hardware) from root.ln.wf02.wt02;
 
