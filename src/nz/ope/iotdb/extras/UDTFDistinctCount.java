@@ -104,13 +104,13 @@ public class UDTFDistinctCount implements UDTF {
         collector.putInt(count, (int) key);
         break;
       case 2:
-        collector.putLong(count, (long) key);
+        collector.putLong(count, (Long) key);
         break;
       case 3:
-        collector.putFloat(count, (float) key);
+        collector.putFloat(count, (Float) key);
         break;
       case 4:
-        collector.putDouble(count, (double) key);
+        collector.putDouble(count, (Double) key);
         break;
       case 5:
         collector.putString(count, (String) key);
